@@ -1,9 +1,10 @@
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use tonic::codegen::http::request;
 use tonic::{transport::Server, Request, Response, Status};
 
-use job::{ApplicationRequest, GenericResponse};
+use job::{ApplicationGeneric, ApplicationsGeneric, GenericResponse, GetApplicationRequest, GetApplicationsRequest};
 use job::application_server::{Application, ApplicationServer};
 
 
@@ -13,30 +14,57 @@ pub mod job {
 
 #[derive(Debug, Default)]
 pub struct Service {
-    pub applications: Arc<Mutex<Vec<ApplicationRequest>>>
+    pub applications: Arc<Mutex<HashMap<i32, ApplicationGeneric>>>
 }
 
 
 #[tonic::async_trait]
 impl Application for Service {
-    async fn create_application(&self, request: Request<ApplicationRequest>) -> Result<Response<GenericResponse>, Status> {
+
+    // Create new applications
+    async fn create_application(&self, request: Request<ApplicationGeneric>) -> Result<Response<GenericResponse>, Status> {
         // Log that an application was received (In a real app this would be done with a proper logger)
-        println!("Application request: {:?}", request);
+        println!("Application create request: {:?}", request);
 
+        // Get application hashmap and inset new application
         let mut apps = self.applications.lock().unwrap();
-
-        apps.push(request.into_inner());
+        let application = request.into_inner();
+        apps.insert(application.id, application);
 
         // Create a reply
         let reply = job::GenericResponse{
             message: "aaa".into(),
-            timestamp: 2556
         };
 
-        println!("{:?}", apps);
-
         Ok(Response::new(reply))
+    }
 
+    // Get application using ID
+    async fn get_application(&self, request: Request<GetApplicationRequest>) -> Result<Response<ApplicationGeneric>, Status> {
+        // Log that an application was received (In a real app this would be done with a proper logger)
+        println!("Application query by id request: {:?}", request);
+
+        let application_id = request.into_inner().id;
+
+        // Get application hashmap and inset new application
+        let hashmap = self.applications.lock().unwrap();
+        let application = hashmap.get(&application_id);
+
+        match application {
+            Some(app) => Ok(Response::new(app.clone())),
+            _ => Err(Status::not_found("Could not find application with given id"))
+        }
+    }
+
+    // Gets all applications
+    async fn get_applications(&self, request: Request<GetApplicationsRequest>) -> Result<Response<ApplicationsGeneric>, Status> {
+        // Log that an application was received (In a real app this would be done with a proper logger)
+        println!("Application query all request: {:?}", request);
+
+        // Get application hashmap and inset new application
+        let applications = self.applications.lock().unwrap().values().cloned().collect();
+
+        Ok(Response::new(ApplicationsGeneric { applications: applications }))
     }
 }
 
@@ -46,7 +74,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let svc = Service::default();
 
     Server::builder()
-        // .add_service(GreeterServer::new(svc))
         .add_service(ApplicationServer::new(svc))
         .serve(addr)
         .await?;

@@ -4,19 +4,42 @@ package job;
 ///////////////////////////////////////////////////////////////////////////////
 
 service Application {
-    rpc createApplication (ApplicationRequest) returns (GenericResponse);
+    rpc createApplication (ApplicationGeneric) returns (GenericResponse);
+    rpc getApplication (GetApplicationRequest) returns (ApplicationGeneric);
+    rpc getApplications (GetApplicationsRequest) returns (ApplicationsGeneric);
 }
 
-message ApplicationRequest {
+//////////////////////////////////////
+// Generics
+//////////////////////////////////////
+
+// This message is generic, it can be used requests and responses
+message ApplicationGeneric {
     int32 id = 1;
     string fullname = 2;
     bytes cv = 3;
     int64 timestamp = 15; // Less than 16 to reduce byte size
-    
 }
+
+// This message is generic, it can be used requests and responses
+message ApplicationsGeneric {
+    repeated ApplicationGeneric applications = 1;
+}
+
+//////////////////////////////////////
+// Requests
+//////////////////////////////////////
+
+message GetApplicationRequest {
+    int32 id = 1;
+}
+
+message GetApplicationsRequest {}
+
+//////////////////////////////////////
+// Responses
+//////////////////////////////////////
 
 message GenericResponse {
     string message = 1;
-    int32 timestamp = 2;
 }
-
