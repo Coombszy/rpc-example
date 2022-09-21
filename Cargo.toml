@@ -3,6 +3,19 @@ name = "job-search"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "job-search-server"
+path = "src/server.rs"
+
+[[bin]]
+name = "job-search-client"
+path = "src/client.rs"
 
 [dependencies]
+tonic = "0.8"
+prost = "0.11"
+tokio = { version = "1.21", features = ["rt-multi-thread","macros"]}
+
+[build-dependencies]
+tonic-build = "0.8"
