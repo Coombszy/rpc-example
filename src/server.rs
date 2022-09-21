@@ -1,7 +1,10 @@
+use std::sync::{Arc, Mutex};
+
+use tonic::codegen::http::request;
 use tonic::{transport::Server, Request, Response, Status};
 
-use job::{HelloRequest, HelloReply};
-use job::greeter_server::{Greeter, GreeterServer};
+use job::{ApplicationRequest, GenericResponse};
+use job::application_server::{Application, ApplicationServer};
 
 
 pub mod job {
@@ -9,31 +12,42 @@ pub mod job {
 }
 
 #[derive(Debug, Default)]
-pub struct MyGreeter {}
+pub struct Service {
+    pub applications: Arc<Mutex<Vec<ApplicationRequest>>>
+}
+
 
 #[tonic::async_trait]
-impl Greeter for MyGreeter {
-    async fn say_hello(
-        &self,
-        request: Request<HelloRequest>
-    ) -> Result<Response<HelloReply>, Status> {
-        println!("Got a request: {:?}", request);
+impl Application for Service {
+    async fn create_application(&self, request: Request<ApplicationRequest>) -> Result<Response<GenericResponse>, Status> {
+        // Log that an application was received (In a real app this would be done with a proper logger)
+        println!("Application request: {:?}", request);
 
-        let reply = job::HelloReply {
-            message: format!("Hello {}!", request.into_inner().name).into(),
+        let mut apps = self.applications.lock().unwrap();
+
+        apps.push(request.into_inner());
+
+        // Create a reply
+        let reply = job::GenericResponse{
+            message: "aaa".into(),
+            timestamp: 2556
         };
 
+        println!("{:?}", apps);
+
         Ok(Response::new(reply))
+
     }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "[::1]:50051".parse()?;
-    let greeter = MyGreeter::default();
+    let svc = Service::default();
 
     Server::builder()
-        .add_service(GreeterServer::new(greeter))
+        // .add_service(GreeterServer::new(svc))
+        .add_service(ApplicationServer::new(svc))
         .serve(addr)
         .await?;
 
