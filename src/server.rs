@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use tonic::codegen::http::request;
 use tonic::{transport::Server, Request, Response, Status};
 
 use job::{ApplicationGeneric, ApplicationsGeneric, GenericResponse, GetApplicationRequest, GetApplicationsRequest};
