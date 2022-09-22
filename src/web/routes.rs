@@ -21,6 +21,7 @@ pub async fn health( data: Data<AppState>) -> Result<HttpResponse, Error> {
 
     let mut rpc = data.rpc_client.lock().unwrap();
     let response = rpc.health_check(Request::new(crate::job::Empty { })).await;
+    drop(rpc);
     
     if response.is_ok(){
         Ok(HttpResponse::NoContent().finish())
@@ -56,6 +57,7 @@ pub async fn create_application( data: Data<AppState>, mut payload: Multipart) -
 
     let mut rpc = data.rpc_client.lock().unwrap();
     let response = rpc.create_application(request).await;
+    drop(rpc);
 
     if response.is_ok(){
         Ok(HttpResponse::NoContent().finish())
@@ -74,6 +76,7 @@ pub async fn get_applications( data: Data<AppState>) -> Result<HttpResponse, Err
 
     let mut rpc = data.rpc_client.lock().unwrap();
     let response = rpc.get_applications(request).await;
+    drop(rpc);
 
     if response.is_ok(){
 
@@ -108,6 +111,7 @@ pub async fn get_cv( data: Data<AppState>, path: web::Path<String>) -> Result<Ht
 
     let mut rpc = data.rpc_client.lock().unwrap();
     let response = rpc.get_application(request).await;
+    drop(rpc);
 
     if response.is_ok(){
         // Get application cv bytes and return as pdf!
