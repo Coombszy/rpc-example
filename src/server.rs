@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 
 use tonic::{transport::Server, Request, Response, Status};
 
-use job::{ApplicationGeneric, ApplicationsGeneric, GenericResponse, GetApplicationRequest, GetApplicationsRequest};
+use job::{ApplicationGeneric, ApplicationsGeneric, GenericResponse, GetApplicationRequest, GetApplicationsRequest, Empty};
 use job::application_server::{Application, ApplicationServer};
 
 
@@ -13,7 +13,7 @@ pub mod job {
 
 #[derive(Debug, Default)]
 pub struct Service {
-    pub applications: Arc<Mutex<HashMap<i32, ApplicationGeneric>>>
+    pub applications: Arc<Mutex<HashMap<String, ApplicationGeneric>>>
 }
 
 
@@ -23,12 +23,13 @@ impl Application for Service {
     // Create new applications
     async fn create_application(&self, request: Request<ApplicationGeneric>) -> Result<Response<GenericResponse>, Status> {
         // Log that an application was received (In a real app this would be done with a proper logger)
-        println!("Application create request: {:?}", request);
-
+        
         // Get application hashmap and inset new application
         let mut apps = self.applications.lock().unwrap();
         let application = request.into_inner();
-        apps.insert(application.id, application);
+        println!("Application create request: {:?}", application.id);
+        apps.insert(application.id.clone(), application);
+
 
         // Create a reply
         let reply = job::GenericResponse{
@@ -41,9 +42,9 @@ impl Application for Service {
     // Get application using ID
     async fn get_application(&self, request: Request<GetApplicationRequest>) -> Result<Response<ApplicationGeneric>, Status> {
         // Log that an application was received (In a real app this would be done with a proper logger)
-        println!("Application query by id request: {:?}", request);
-
+        
         let application_id = request.into_inner().id;
+        println!("Application query by id request: {:?}", application_id);
 
         // Get application hashmap and inset new application
         let hashmap = self.applications.lock().unwrap();
@@ -65,14 +66,23 @@ impl Application for Service {
 
         Ok(Response::new(ApplicationsGeneric { applications: applications }))
     }
+
+    async fn health_check(&self, _: Request<Empty>) -> Result<Response<Empty>, Status> {
+        Ok(Response::new(Empty { }))
+    }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+    let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
+    health_reporter.set_serving::<ApplicationServer<Service>>().await;
+
     let addr = "[::1]:50051".parse()?;
     let svc = Service::default();
 
     Server::builder()
+        .add_service(health_service)
         .add_service(ApplicationServer::new(svc))
         .serve(addr)
         .await?;

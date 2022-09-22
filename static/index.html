@@ -19,6 +19,20 @@
             You can search for an application by id or applicant full name. <br>
         </p>
         <hr>
+        <p>
+            Create a new application
+            <form action="/application" method="post" enctype='multipart/form-data'>
+
+                <label for="fullname">Full name:</label>
+                <input id="fullname" name="fullname">|
+
+                <label for="cv">CV:</label>
+                <input type="file" id="cv" name="cv">
+                
+                <input type="submit">
+            </form>
+        </p>
+        <hr>
         
         
         <div class="footer-left">
