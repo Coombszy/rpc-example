@@ -64,7 +64,7 @@ impl Application for Service {
         // Get application hashmap and inset new application
         let applications = self.applications.lock().unwrap().values().cloned().collect();
 
-        Ok(Response::new(ApplicationsGeneric { applications: applications }))
+        Ok(Response::new(ApplicationsGeneric { applications }))
     }
 
     async fn health_check(&self, _: Request<Empty>) -> Result<Response<Empty>, Status> {

@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use job::application_client::ApplicationClient;
-use job::ApplicationGeneric;
+
 
 use actix_web::App;
 use actix_web::{
