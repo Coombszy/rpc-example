@@ -9,8 +9,7 @@ use actix_multipart::Multipart;
 use actix_web::{
     get, post,
     web::{self, Data},
-    Error, HttpResponse,
-    HttpRequest
+    Error, HttpRequest, HttpResponse,
 };
 
 use futures_util::{stream::StreamExt as _, TryStreamExt};
@@ -85,7 +84,10 @@ pub async fn create_application(
 
 // Get all applications
 #[get("/applications")]
-pub async fn get_applications(http_request: HttpRequest, data: Data<AppState>) -> Result<HttpResponse, Error> {
+pub async fn get_applications(
+    http_request: HttpRequest,
+    data: Data<AppState>,
+) -> Result<HttpResponse, Error> {
     // Create gRPC request
     let request = Request::new(crate::job::GetApplicationsRequest {});
 
