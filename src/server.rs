@@ -98,6 +98,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "[::1]:50051".parse()?;
     let svc = Service::default();
 
+    println!("Starting gRPC server! {}", addr);
+
     Server::builder()
         .add_service(health_service)
         .add_service(ApplicationServer::new(svc))

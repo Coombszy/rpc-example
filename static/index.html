@@ -21,7 +21,7 @@
         <hr>
         <p>
             Create a new application
-            <form action="/application" method="post" enctype='multipart/form-data'>
+            <form id="form" action="/application" method="post" enctype='multipart/form-data' onsubmit="return submitForm(this);">
 
                 <label for="fullname">Full name:</label>
                 <input id="fullname" name="fullname">|
@@ -33,7 +33,9 @@
             </form>
         </p>
         <hr>
-        
+
+        <div id="app-data">
+        </div>
         
         <div class="footer-left">
             <p id="status"></p>

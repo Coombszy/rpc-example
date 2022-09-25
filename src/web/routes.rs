@@ -10,6 +10,7 @@ use actix_web::{
     get, post,
     web::{self, Data},
     Error, HttpResponse,
+    HttpRequest
 };
 
 use futures_util::{stream::StreamExt as _, TryStreamExt};
@@ -84,7 +85,7 @@ pub async fn create_application(
 
 // Get all applications
 #[get("/applications")]
-pub async fn get_applications(data: Data<AppState>) -> Result<HttpResponse, Error> {
+pub async fn get_applications(http_request: HttpRequest, data: Data<AppState>) -> Result<HttpResponse, Error> {
     // Create gRPC request
     let request = Request::new(crate::job::GetApplicationsRequest {});
 
@@ -95,14 +96,15 @@ pub async fn get_applications(data: Data<AppState>) -> Result<HttpResponse, Erro
     if response.is_ok() {
         // Get all applications and convert them to frontend friendly json
         let apps: ApplicationsGeneric = response.unwrap().into_inner();
+        let ci = http_request.connection_info();
 
         // Applications suitable for serde serialization
         let mut fe_apps: Vec<Application> = Vec::new();
         for a in apps.applications {
             fe_apps.push(Application {
                 fullname: a.fullname,
-                creation_time: a.timestamp.to_string(),
-                cv_link: "aaa".to_string(),
+                creation_time: a.timestamp,
+                cv_link: format!("{}://{}/cv/{}", ci.scheme(), ci.host(), a.id),
             })
         }
 

@@ -24,19 +24,6 @@ pub struct AppState {
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    // let request = tonic::Request::new(ApplicationGeneric {
-    //     id: 1,
-    //     fullname: "aaa".into(),
-    //     cv: "abc".into(),
-    //     timestamp: 11111
-    // });
-
-    // let response = client.create_application(request).await?;
-
-    // println!("RESPONSE={:?}", response);
-
-    // Ok(())
-
     let host: String = "0.0.0.0".to_string(); // This should be loaded via config
     let port: u16 = 8080; // This should be loaded via config
 
